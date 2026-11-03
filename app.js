@@ -15,7 +15,7 @@ function nextOccurrences(t,limit=30){
  for(let i=0;i<370&&out.length<limit;i++){
   const d=new Date(first);d.setDate(first.getDate()+i);
   const match=t.repeat==="daily"||t.repeat==="weekly"&&d.getDay()===first.getDay()||t.repeat==="custom"&&(t.days||[]).includes(d.getDay())||t.repeat!=="daily"&&t.repeat!=="weekly"&&t.repeat!=="custom"&&i===0;
-  if(match&&d>now)out.push(d);
+  if(match&&d.getTime()>now.getTime()-24*60*60*1000)out.push(d);
   if(!t.repeat||t.repeat==="once")break;
  }
  return out;
