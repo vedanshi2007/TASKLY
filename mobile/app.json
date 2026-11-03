@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "TASKLY",
+    "slug": "taskly",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.taskly.app"
+    },
+    "android": {
+      "package": "com.taskly.app",
+      "permissions": ["POST_NOTIFICATIONS", "VIBRATE"],
+      "notification": {
+        "icon": "./assets/notification-icon.png",
+        "color": "#315CFF"
+      }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "task-reminders",
+          "color": "#315CFF"
+        }
+      ]
+    ]
+  }
+}
