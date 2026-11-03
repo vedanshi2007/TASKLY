@@ -1,27 +1,32 @@
-# TASKLY — To-do & deadline alarm app
+# TASKLY — To-do & reminder app
 
-A responsive task manager with deadlines, recurring-task choices, progress tracking and reminder alarms. Theme: Midnight Black, Electric Cobalt Blue and Acid Lime.
+A local-first task manager for laptop browsers and Android/iOS devices. Theme: Midnight Black, Electric Cobalt Blue and Acid Lime.
 
-## Run locally
+## Laptop / web app
 1. Install Node.js LTS.
-2. Clone or download this repository.
-3. Run `npm install`, then `npm run dev`.
+2. Run `npm install`.
+3. Run `npm run dev`.
 4. Open the local URL printed by Vite.
 
-The app uses HTML, CSS and vanilla JavaScript (not React). Tasks are saved in the current browser using localStorage.
+The web app uses HTML, CSS and vanilla JavaScript. Tasks are stored in that browser's localStorage.
 
-## Included
-- Add, edit and delete tasks
-- One-time, daily, weekly and custom repeat choices
-- Due date/time, priority and reminder lead time
-- Complete tasks, Today/Upcoming/All/Completed views
-- Local alarm sound and browser notification permission
-- PWA manifest and service worker starter
-- Supabase SQL schema and example reminder Edge Functions
+## Mobile app
+See [mobile/README.md](mobile/README.md) for Expo setup and preview instructions.
 
-## Important implementation notes
-- The current browser app is local-first. The Supabase login/cloud-sync frontend is not wired into this repository version yet; the SQL and Edge Function files are backend scaffolding only.
-- Repeat choices are saved as task metadata; automatic generation of future recurring occurrences is not implemented yet.
-- Local alarm checks run while the app page is open. A webpage cannot guarantee an audible alarm after the browser/device is fully closed.
-- The Supabase reminder functions need a configured project, secrets, scheduler and end-to-end testing before use. The provided reminder code is a starter, not production-certified.
-- Never commit Supabase service-role keys or VAPID private keys. Copy `supabase-config.js.example` only for a future client integration; it is not loaded by the current app.
+## Features
+- Add, edit, complete and delete tasks
+- Due date, time, priority and reminder lead time
+- One-time, daily, weekly and custom weekday repeat options
+- Per-task Silent / Low / High reminder sound choice
+- Today, Upcoming, All and Completed task views
+- Local device/browser storage; no account or cloud setup required
+
+## Important reminder limitations
+- The mobile app schedules local notifications on the device. Android notification channels and iOS system settings control the final sound, volume, vibration and delivery. The app cannot force an iPhone alarm to be louder than the device permits.
+- The web app checks deadlines and plays its in-page alarm while the page is open. A regular browser page cannot guarantee a custom audible alarm after the browser/app is fully closed.
+- Browser notifications are controlled by browser and operating-system settings. Web push while closed is not configured.
+- Recurring mobile notifications are scheduled in a rolling window (up to 45 future occurrences) and refreshed when the app is opened. This is not an indefinite alarm service.
+- The project has not yet been tested on physical Android and iPhone devices. Treat it as a development build, not a finished store release.
+
+## Cloud
+Cloud sync is intentionally left disconnected for now. Local tasks stay on the device/browser where they were created; they do not automatically sync between devices. Supabase starter files remain in the repository for possible future use.
