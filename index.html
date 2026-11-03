@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#05070d">
+<title>TASKLY — Plan It. Do It. On Time.</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css">
+</head>
+<body><div class="app-shell">
+<aside class="sidebar"><a class="brand" href="#"><span class="brand-mark">T</span><span>TASKLY<small>YOUR TIME. YOUR GOALS.</small></span></a>
+<nav><button class="nav-item active" data-view="today">◷ Today</button><button class="nav-item" data-view="upcoming">▦ Upcoming</button><button class="nav-item" data-view="all">☷ All tasks</button><button class="nav-item" data-view="completed">✓ Completed</button></nav>
+<div class="sidebar-bottom"><p class="eyebrow">YOUR FOCUS</p><b id="focusCount">0 tasks left</b><button class="text-button" id="enableNotifications">♧ Enable notifications</button></div></aside>
+<main class="main"><header class="topbar"><b class="mobile-brand">TASKLY<span>•</span></b><span id="todayDate"></span><div class="top-actions"><span id="cloudStatus">LOCAL MODE</span><button class="icon-btn" id="soundToggle">♫</button></div></header>
+<section class="hero"><div><p class="eyebrow">MAKE TODAY COUNT</p><h1 id="greeting">Plan it.<br><em>Do it.</em> On time.</h1><p>Your tasks. Your time. Your reminders.</p></div><div class="hero-orbit">T<span>✓</span></div></section>
+<section class="stats-grid"><article class="stat-card"><small>TOTAL TASKS</small><strong id="totalStat">0</strong></article><article class="stat-card"><small>COMPLETED</small><strong id="doneStat">0</strong></article><article class="stat-card"><small>TO DO</small><strong id="pendingStat">0</strong></article><article class="stat-card"><small>OVERDUE</small><strong id="overdueStat">0</strong></article></section>
+<section class="content-grid"><div class="tasks-panel"><div class="section-heading"><div><p class="eyebrow" id="viewEyebrow">YOUR PRIORITIES</p><h2 id="viewTitle">Today's tasks<span class="lime-dot">.</span></h2></div><button class="primary-btn" id="addTaskBtn">＋ Add task</button></div>
+<div class="progress-wrap"><div class="progress-meta"><span>DAILY PROGRESS</span><b id="progressText">0%</b></div><div class="progress-track"><div id="progressBar"></div></div></div>
+<div class="filter-row"><button class="filter active" data-filter="all">All</button><button class="filter" data-filter="pending">Pending</button><button class="filter" data-filter="overdue">Overdue</button></div><div id="taskList" class="task-list"></div>
+<div id="emptyState" class="empty-state"><h3>A clear space to begin.</h3><p>Add your first task and make today count.</p><button class="outline-btn" id="emptyAddBtn">＋ Create a task</button></div></div>
+<aside class="right-column"><div class="alarm-card"><p class="eyebrow">NEVER MISS A MOMENT</p><h3>Stay ahead of your <em>deadlines.</em></h3><p>We'll remind you before a task is due, then alert you if it's still unfinished.</p><b>REMINDERS ON</b></div><div class="up-next-card"><p class="eyebrow">COMING UP</p><h3>Next deadlines</h3><div id="upcomingList"></div></div></aside></section>
+<footer>PLAN IT. DO IT. ON TIME.</footer></main></div>
+<div class="modal-backdrop" id="taskModal"><form class="task-modal" id="taskForm"><div class="modal-top"><div><p class="eyebrow">MAKE IT HAPPEN</p><h2 id="modalTitle">Create a task.</h2></div><button type="button" class="close-btn" id="closeModal">×</button></div>
+<label>Task name<input id="taskName" maxlength="90" required placeholder="e.g. Finish assignment"></label><label>Description<textarea id="taskDescription" rows="2"></textarea></label>
+<div class="form-row"><label>Due date<input id="taskDate" type="date" required></label><label>Deadline time<input id="taskTime" type="time" required></label></div>
+<label>Repeat<select id="taskRepeat"><option value="once">One-time task</option><option value="daily">Every day</option><option value="weekly">Every week (same day)</option><option value="custom">Custom days</option></select></label>
+<div class="weekday-picker" id="weekdayPicker"><label><input type="checkbox" value="1">Mon</label><label><input type="checkbox" value="2">Tue</label><label><input type="checkbox" value="3">Wed</label><label><input type="checkbox" value="4">Thu</label><label><input type="checkbox" value="5">Fri</label><label><input type="checkbox" value="6">Sat</label><label><input type="checkbox" value="0">Sun</label></div>
+<div class="form-row"><label>Remind me<select id="reminder"><option value="0">At deadline</option><option value="5">5 minutes before</option><option value="10">10 minutes before</option><option value="15" selected>15 minutes before</option><option value="30">30 minutes before</option><option value="60">1 hour before</option></select></label><label>Priority<select id="taskPriority"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select></label></div>
+<div class="modal-actions"><button type="button" class="outline-btn" id="cancelModal">Cancel</button><button class="primary-btn">Save task ↗</button></div><input type="hidden" id="editingId"></form></div>
+<div class="alarm-overlay" id="alarmOverlay"><div class="alarm-box"><p class="eyebrow">TASKLY REMINDER</p><h2 id="alarmTitle">It's time.</h2><p id="alarmMessage">You have a task waiting.</p><div class="alarm-actions"><button class="outline-btn" id="stopAlarm">Stop sound</button><button class="primary-btn" id="snoozeAlarm">Snooze 5 min</button><button class="done-btn" id="alarmDone">Mark done ✓</button></div></div></div><div class="toast" id="toast"></div>
+<script src="app.js"></script></body></html>
