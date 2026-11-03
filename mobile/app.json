@@ -14,7 +14,6 @@
       "package": "com.taskly.app",
       "permissions": ["POST_NOTIFICATIONS", "VIBRATE"],
       "notification": {
-        "icon": "./assets/notification-icon.png",
         "color": "#315CFF"
       }
     },
@@ -22,7 +21,7 @@
       [
         "expo-notifications",
         {
-          "defaultChannel": "task-reminders",
+          "defaultChannel": "taskly-low",
           "color": "#315CFF"
         }
       ]
