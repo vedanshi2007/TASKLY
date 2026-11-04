@@ -56,7 +56,7 @@ async function setupNotifications() {
   return notificationSetupPromise;
 }
 
-function futureDates(task, limit = 45) {
+function futureDates(task, limit = 14) {
   const first = dueDate(task);
   const dates = [];
   const now = new Date();
@@ -174,20 +174,37 @@ export default function App() {
     if (repeat === "custom" && days.length === 0) return Alert.alert("Choose days", "Select at least one day for a custom repeat.");
     if (repeat === "once" && dueDate({date,time}) <= new Date()) return Alert.alert("Choose a future time", "The deadline must be in the future.");
     const old = tasks.find(t => t.id === editingId);
-    if (old) await cancelTaskNotifications(old);
     const task = {
       id: editingId || makeId(), name:name.trim(), date, time, repeat, days,
       reminder:Number(reminder), sound, priority, done:false,
       created:old?.created || Date.now(), notificationIds:[]
     };
-    task.notificationIds = await scheduleTask(task);
     const next = old ? tasks.map(t => t.id === old.id ? task : t) : [task, ...tasks];
-    await saveTasks(next);
+
+    try {
+      await saveTasks(next);
+    } catch (error) {
+      Alert.alert("Couldn't save task", "Please check your device storage and try again.");
+      return;
+    }
+
     resetForm();
     setShowForm(false);
-    Alert.alert("Saved", task.notificationIds.length
-      ? "Your device reminders are scheduled."
-      : "Task saved. Check notification permission and device settings.");
+    Alert.alert("Saved", "Your task has been saved on this device.");
+
+    void (async () => {
+      try {
+        if (old) await cancelTaskNotifications(old);
+        const ids = await scheduleTask(task);
+        const latest = next.map(item =>
+          item.id === task.id ? {...item, notificationIds:ids} : item
+        );
+        setTasks(latest);
+        await AsyncStorage.setItem(KEY, JSON.stringify(latest));
+      } catch (error) {
+        console.warn("TASKLY reminder scheduling failed:", error);
+      }
+    })();
   }
 
   function editTask(task) {
