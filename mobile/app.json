@@ -12,7 +12,10 @@
     },
     "android": {
       "package": "com.taskly.app",
-      "permissions": ["POST_NOTIFICATIONS", "VIBRATE"],
+      "permissions": [
+        "POST_NOTIFICATIONS",
+        "VIBRATE"
+      ],
       "notification": {
         "color": "#315CFF"
       }
@@ -21,8 +24,11 @@
       [
         "expo-notifications",
         {
-          "defaultChannel": "taskly-high-v3",
-          "color": "#315CFF"
+          "defaultChannel": "taskly-high-v4",
+          "color": "#315CFF",
+          "sounds": [
+            "./assets/taskly-alarm.wav"
+          ]
         }
       ]
     ]
