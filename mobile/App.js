@@ -96,26 +96,41 @@ async function cancelTaskNotifications(task) {
 
 async function scheduleTask(task) {
   if (!notificationPermissionGranted || task.done) return [];
+
   const reminders = futureDates(task).map(due => {
     const reminderAt = new Date(due.getTime() - (Number(task.reminder) || 0) * 60000);
     const triggerAt = reminderAt > new Date() ? reminderAt : due;
     if (triggerAt <= new Date()) return null;
-    const channelId = `taskly-${task.sound || "low"}-v2`;
-    const sound = task.sound === "silent" ? null : "default";
-    return Notifications.scheduleNotificationAsync({
+
+    const channelId = task.sound === "silent"
+      ? "taskly-silent"
+      : task.sound === "high"
+        ? "taskly-high-v2"
+        : "taskly-low-v2";
+
+    return {
       content: {
         title: "TASKLY · Deadline reminder",
         body: task.name,
-        sound,
-        data: { taskId: task.id },
-        vibrate: task.sound === "high" ? [0,500,250,500] : []
+        sound: task.sound === "silent" ? null : "default",
+        data: { taskId: task.id }
       },
       trigger: Platform.OS === "android"
         ? { type: Notifications.SchedulableTriggerInputTypes.DATE, date: triggerAt, channelId }
         : { type: Notifications.SchedulableTriggerInputTypes.DATE, date: triggerAt }
-    });
+    };
   }).filter(Boolean);
-  return Promise.all(reminders);
+
+  const ids = [];
+  for (const reminder of reminders) {
+    try {
+      const id = await Notifications.scheduleNotificationAsync(reminder);
+      ids.push(id);
+    } catch (error) {
+      console.warn("TASKLY could not schedule one reminder:", error);
+    }
+  }
+  return ids;
 }
 
 export default function App() {
