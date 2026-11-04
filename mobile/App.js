@@ -56,8 +56,8 @@ async function setupNotifications() {
     if (Platform.OS === "android") {
       const channels = [
         { id:"taskly-silent", name:"Silent reminders", importance:Notifications.AndroidImportance.LOW, sound:null, vibrationPattern:[] },
-        { id:"taskly-low-v2", name:"Low reminders", importance:Notifications.AndroidImportance.HIGH, sound:"default", vibrationPattern:[0,250] },
-        { id:"taskly-high-v2", name:"High reminders", importance:Notifications.AndroidImportance.MAX, sound:"default", vibrationPattern:[0,500,250,500,250,500] }
+        { id:"taskly-low-v3", name:"Low reminders", importance:Notifications.AndroidImportance.HIGH, sound:"default", vibrationPattern:[0,250] },
+        { id:"taskly-high-v3", name:"High reminders", importance:Notifications.AndroidImportance.MAX, sound:"default", vibrationPattern:[0,500,250,500,250,500] }
       ];
       await Promise.all(channels.map(channel =>
         Notifications.setNotificationChannelAsync(channel.id, channel)
@@ -105,8 +105,8 @@ async function scheduleTask(task) {
     const channelId = task.sound === "silent"
       ? "taskly-silent"
       : task.sound === "high"
-        ? "taskly-high-v2"
-        : "taskly-low-v2";
+        ? "taskly-high-v3"
+        : "taskly-low-v3";
 
     return {
       content: {
