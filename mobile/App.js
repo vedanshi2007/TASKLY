@@ -313,18 +313,25 @@ export default function App() {
           </View>}
 
           <View style={styles.filterRow}>{["all","pending","done"].map(v=>choice(v,filter===v,()=>setFilter(v)))}</View>
-          <FlatList scrollEnabled={false} data={visible} keyExtractor={item=>item.id}
-            ListEmptyComponent={<View style={styles.empty}><Text style={styles.emptyIcon}>✦</Text><Text style={styles.emptyTitle}>A fresh start.</Text><Text style={styles.muted}>Add your first task and make it happen.</Text></View>}
-            renderItem={({item})=><View style={styles.card}>
-              <Pressable onPress={()=>toggleTask(item)} style={[styles.check,item.done&&styles.checked]}><Text style={styles.checkText}>{item.done?"✓":""}</Text></Pressable>
+{visible.length === 0 ? (
+            <View style={styles.empty}><Text style={styles.emptyIcon}>✦</Text><Text style={styles.emptyTitle}>A fresh start.</Text><Text style={styles.muted}>Add your first task and make it happen.</Text></View>
+          ) : visible.map(item => (
+            <View key={item.id} style={styles.card}>
+              <Pressable onPress={() => toggleTask(item)} style={[styles.check,item.done && styles.checked]}><Text style={styles.checkText}>{item.done ? "✓" : ""}</Text></Pressable>
               <View style={styles.taskBody}>
-                <Text style={[styles.taskName,item.done&&styles.strike]}>{item.name}</Text>
+                <Text style={[styles.taskName,item.done && styles.strike]}>{item.name}</Text>
                 <Text style={styles.taskMeta}>{item.date}  ·  {item.time}</Text>
-                <View style={styles.tagRow}><Text style={styles.tag}>{(item.repeat||"once").toUpperCase()}</Text><Text style={styles.priorityTag}>{(item.priority||"medium").toUpperCase()} PRIORITY</Text></View>
+                <View style={styles.tagRow}><Text style={styles.tag}>{(item.repeat || "once").toUpperCase()}</Text><Text style={styles.priorityTag}>{(item.priority || "medium").toUpperCase()} PRIORITY</Text></View>
               </View>
-              <View style={styles.actions}><Pressable onPress={()=>editTask(item)}><Text style={styles.edit}>EDIT</Text></Pressable><Pressable onPress={()=>Alert.alert("Delete task?",item.name,[{text:"Cancel"},{text:"Delete",style:"destructive",onPress:()=>deleteTask(item)}])}><Text style={styles.delete}>DELETE</Text></Pressable></View>
-            </View>}
-          />
+              <View style={styles.actions}>
+                <Pressable onPress={() => editTask(item)}><Text style={styles.edit}>EDIT</Text></Pressable>
+                <Pressable onPress={() => Alert.alert("Delete task?", item.name, [
+                  {text:"Cancel", style:"cancel"},
+                  {text:"Delete", style:"destructive", onPress:() => deleteTask(item)}
+                ])}><Text style={styles.delete}>DELETE</Text></Pressable>
+              </View>
+            </View>
+          ))}
           <Text style={styles.foot}>Your tasks stay on this device. Cloud sync is off.</Text>
         </ScrollView>
       </KeyboardAvoidingView>
