@@ -28,13 +28,13 @@ const today = () => {
 const validDate = value => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(value + "T12:00:00").getTime());
 const to24Hour = value => {
   const text = String(value || "").trim().toUpperCase();
-  const parts = text.match(/^(0?[1-9]|1[0-2]):([0-5]\\d)\\s*(AM|PM)$/);
+  const parts = text.match(/^(0?[1-9]|1[0-2]):([0-5]\d)\s*(AM|PM)$/);
   if (parts) {
     let hour = Number(parts[1]) % 12;
     if (parts[3] === "PM") hour += 12;
     return pad(hour) + ":" + parts[2];
   }
-  return /^([01]\\d|2[0-3]):[0-5]\\d$/.test(text) ? text : null;
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(text) ? text : null;
 };
 const to12Hour = value => {
   const normalized = to24Hour(value);
@@ -56,8 +56,8 @@ async function setupNotifications() {
     if (Platform.OS === "android") {
       const channels = [
         { id:"taskly-silent", name:"Silent reminders", importance:Notifications.AndroidImportance.LOW, sound:null, vibrationPattern:[] },
-        { id:"taskly-low", name:"Low reminders", importance:Notifications.AndroidImportance.DEFAULT, sound:"default", vibrationPattern:[] },
-        { id:"taskly-high", name:"High reminders", importance:Notifications.AndroidImportance.MAX, sound:"default", vibrationPattern:[0,500,250,500,250,500] }
+        { id:"taskly-low-v2", name:"Low reminders", importance:Notifications.AndroidImportance.HIGH, sound:"default", vibrationPattern:[0,250] },
+        { id:"taskly-high-v2", name:"High reminders", importance:Notifications.AndroidImportance.MAX, sound:"default", vibrationPattern:[0,500,250,500,250,500] }
       ];
       await Promise.all(channels.map(channel =>
         Notifications.setNotificationChannelAsync(channel.id, channel)
@@ -100,7 +100,7 @@ async function scheduleTask(task) {
     const reminderAt = new Date(due.getTime() - (Number(task.reminder) || 0) * 60000);
     const triggerAt = reminderAt > new Date() ? reminderAt : due;
     if (triggerAt <= new Date()) return null;
-    const channelId = `taskly-${task.sound || "low"}`;
+    const channelId = `taskly-${task.sound || "low"}-v2`;
     const sound = task.sound === "silent" ? null : "default";
     return Notifications.scheduleNotificationAsync({
       content: {
@@ -242,9 +242,25 @@ export default function App() {
 
   async function toggleTask(task) {
     const updated = {...task, done:!task.done, notificationIds:[]};
-    if (updated.done) await cancelTaskNotifications(task);
-    else updated.notificationIds = await scheduleTask(updated);
-    await saveTasks(tasks.map(t => t.id === task.id ? updated : t));
+    const next = tasks.map(t => t.id === task.id ? updated : t);
+    try {
+      await saveTasks(next);
+    } catch (error) {
+      Alert.alert("Could not update task", "Please try again.");
+      return;
+    }
+    if (updated.done) {
+      await cancelTaskNotifications(task);
+    } else {
+      try {
+        const ids = await scheduleTask(updated);
+        const latest = next.map(t => t.id === updated.id ? {...t, notificationIds:ids} : t);
+        setTasks(latest);
+        await AsyncStorage.setItem(KEY, JSON.stringify(latest));
+      } catch (error) {
+        console.warn("TASKLY reminder scheduling failed:", error);
+      }
+    }
   }
 
   async function deleteTask(task) {
