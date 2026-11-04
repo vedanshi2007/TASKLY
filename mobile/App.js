@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  Alert, AppState, FlatList, KeyboardAvoidingView, Platform, Pressable,
+  Alert, KeyboardAvoidingView, Platform, Pressable,
   SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -29,18 +29,31 @@ const validDate = value => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(ne
 const validTime = value => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 const dueDate = task => new Date(`${task.date}T${task.time}:00`);
 
+let notificationPermissionGranted = false;
+let notificationSetupPromise = null;
+
 async function setupNotifications() {
-  const permission = await Notifications.requestPermissionsAsync();
-  if (!permission.granted) return false;
-  if (Platform.OS === "android") {
-    const channels = [
-      { id:"taskly-silent", name:"Silent reminders", importance:Notifications.AndroidImportance.LOW, sound:null, vibrationPattern:[] },
-      { id:"taskly-low", name:"Low reminders", importance:Notifications.AndroidImportance.DEFAULT, sound:"default", vibrationPattern:[] },
-      { id:"taskly-high", name:"High reminders", importance:Notifications.AndroidImportance.MAX, sound:"default", vibrationPattern:[0,500,250,500,250,500] }
-    ];
-    for (const channel of channels) await Notifications.setNotificationChannelAsync(channel.id, channel);
-  }
-  return true;
+  if (notificationSetupPromise) return notificationSetupPromise;
+  notificationSetupPromise = (async () => {
+    const permission = await Notifications.requestPermissionsAsync();
+    notificationPermissionGranted = permission.granted;
+    if (!notificationPermissionGranted) return false;
+    if (Platform.OS === "android") {
+      const channels = [
+        { id:"taskly-silent", name:"Silent reminders", importance:Notifications.AndroidImportance.LOW, sound:null, vibrationPattern:[] },
+        { id:"taskly-low", name:"Low reminders", importance:Notifications.AndroidImportance.DEFAULT, sound:"default", vibrationPattern:[] },
+        { id:"taskly-high", name:"High reminders", importance:Notifications.AndroidImportance.MAX, sound:"default", vibrationPattern:[0,500,250,500,250,500] }
+      ];
+      await Promise.all(channels.map(channel =>
+        Notifications.setNotificationChannelAsync(channel.id, channel)
+      ));
+    }
+    return true;
+  })().catch(error => {
+    notificationSetupPromise = null;
+    throw error;
+  });
+  return notificationSetupPromise;
 }
 
 function futureDates(task, limit = 45) {
@@ -67,16 +80,14 @@ async function cancelTaskNotifications(task) {
 }
 
 async function scheduleTask(task) {
-  const permission = await setupNotifications();
-  if (!permission || task.done) return [];
-  const ids = [];
-  for (const due of futureDates(task)) {
+  if (!notificationPermissionGranted || task.done) return [];
+  const reminders = futureDates(task).map(due => {
     const reminderAt = new Date(due.getTime() - (Number(task.reminder) || 0) * 60000);
     const triggerAt = reminderAt > new Date() ? reminderAt : due;
-    if (triggerAt <= new Date()) continue;
+    if (triggerAt <= new Date()) return null;
     const channelId = `taskly-${task.sound || "low"}`;
     const sound = task.sound === "silent" ? null : "default";
-    const id = await Notifications.scheduleNotificationAsync({
+    return Notifications.scheduleNotificationAsync({
       content: {
         title: "TASKLY · Deadline reminder",
         body: task.name,
@@ -88,9 +99,8 @@ async function scheduleTask(task) {
         ? { type: Notifications.SchedulableTriggerInputTypes.DATE, date: triggerAt, channelId }
         : { type: Notifications.SchedulableTriggerInputTypes.DATE, date: triggerAt }
     });
-    ids.push(id);
-  }
-  return ids;
+  }).filter(Boolean);
+  return Promise.all(reminders);
 }
 
 export default function App() {
@@ -139,21 +149,7 @@ export default function App() {
         if (active) setReady(true);
       }
     })();
-    const sub = AppState.addEventListener("change", async state => {
-      if (state === "active") {
-        const saved = await AsyncStorage.getItem(KEY);
-        const loaded = saved ? JSON.parse(saved) : [];
-        for (const task of loaded) {
-          if (!task.done) {
-            await cancelTaskNotifications(task);
-            task.notificationIds = await scheduleTask(task);
-          }
-        }
-        setTasks(loaded);
-        await AsyncStorage.setItem(KEY, JSON.stringify(loaded));
-      }
-    });
-    return () => { active = false; sub.remove(); };
+    return () => { active = false; };
   }, []);
 
   async function saveTasks(next) {
