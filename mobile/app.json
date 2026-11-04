@@ -21,7 +21,7 @@
       [
         "expo-notifications",
         {
-          "defaultChannel": "taskly-low",
+          "defaultChannel": "taskly-high-v3",
           "color": "#315CFF"
         }
       ]
