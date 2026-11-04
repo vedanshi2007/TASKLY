@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert, KeyboardAvoidingView, Platform, Pressable,
   SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View
@@ -26,8 +26,23 @@ const today = () => {
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 };
 const validDate = value => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(new Date(value + "T12:00:00").getTime());
-const validTime = value => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
-const dueDate = task => new Date(`${task.date}T${task.time}:00`);
+const to24Hour = value => {
+  const text = String(value || "").trim().toUpperCase();
+  const parts = text.match(/^(0?[1-9]|1[0-2]):([0-5]\\d)\\s*(AM|PM)$/);
+  if (parts) {
+    let hour = Number(parts[1]) % 12;
+    if (parts[3] === "PM") hour += 12;
+    return pad(hour) + ":" + parts[2];
+  }
+  return /^([01]\\d|2[0-3]):[0-5]\\d$/.test(text) ? text : null;
+};
+const to12Hour = value => {
+  const normalized = to24Hour(value);
+  if (!normalized) return value || "";
+  const parts = normalized.split(":").map(Number);
+  return (parts[0] % 12 || 12) + ":" + pad(parts[1]) + (parts[0] >= 12 ? " PM" : " AM");
+};
+const dueDate = task => new Date(task.date + "T" + (to24Hour(task.time) || "00:00") + ":00");
 
 let notificationPermissionGranted = false;
 let notificationSetupPromise = null;
@@ -110,7 +125,9 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [date, setDate] = useState(today());
-  const [time, setTime] = useState("18:00");
+  const [time, setTime] = useState("6:00 PM");
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [repeat, setRepeat] = useState("once");
   const [days, setDays] = useState([]);
   const [reminder, setReminder] = useState("15");
@@ -163,19 +180,23 @@ export default function App() {
   }
 
   function resetForm() {
-    setName(""); setDate(today()); setTime("18:00"); setRepeat("once");
+    setName(""); setDate(today()); setTime("6:00 PM"); setRepeat("once");
     setDays([]); setReminder("15"); setSound("high"); setPriority("medium");
     setEditingId(null);
   }
 
   async function saveTask() {
     if (!name.trim()) return Alert.alert("Task name needed", "Enter what you need to do.");
-    if (!validDate(date) || !validTime(time)) return Alert.alert("Check date and time", "Use YYYY-MM-DD and 24-hour HH:MM format.");
+    const time24 = to24Hour(time);
+    if (!validDate(date) || !time24) return Alert.alert("Check date and time", "Enter the date as YYYY-MM-DD and time like 6:30 PM.");
     if (repeat === "custom" && days.length === 0) return Alert.alert("Choose days", "Select at least one day for a custom repeat.");
-    if (repeat === "once" && dueDate({date,time}) <= new Date()) return Alert.alert("Choose a future time", "The deadline must be in the future.");
+    if (repeat === "once" && dueDate({date,time:time24}) <= new Date()) return Alert.alert("Choose a future time", "The deadline must be in the future.");
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
     const old = tasks.find(t => t.id === editingId);
     const task = {
-      id: editingId || makeId(), name:name.trim(), date, time, repeat, days,
+      id: editingId || makeId(), name:name.trim(), date, time:time24, repeat, days,
       reminder:Number(reminder), sound, priority, done:false,
       created:old?.created || Date.now(), notificationIds:[]
     };
@@ -184,12 +205,16 @@ export default function App() {
     try {
       await saveTasks(next);
     } catch (error) {
-      Alert.alert("Couldn't save task", "Please check your device storage and try again.");
+      savingRef.current = false;
+      setSaving(false);
+      Alert.alert("Save failed", "Please check your device storage and try again.");
       return;
     }
 
     resetForm();
     setShowForm(false);
+    savingRef.current = false;
+    setSaving(false);
     Alert.alert("Saved", "Your task has been saved on this device.");
 
     void (async () => {
@@ -208,7 +233,7 @@ export default function App() {
   }
 
   function editTask(task) {
-    setEditingId(task.id); setName(task.name); setDate(task.date); setTime(task.time);
+    setEditingId(task.id); setName(task.name); setDate(task.date); setTime(to12Hour(task.time));
     setRepeat(task.repeat || "once"); setDays(task.days || []);
     setReminder(String(task.reminder ?? 15)); setSound(task.sound || "low");
     setPriority(task.priority || "medium");
@@ -310,8 +335,8 @@ export default function App() {
             <TextInput value={name} onChangeText={setName} placeholder="What do you need to do?" placeholderTextColor="#9B879D" style={styles.input}/>
             <Text style={styles.label}>DUE DATE · YYYY-MM-DD</Text>
             <TextInput value={date} onChangeText={setDate} placeholder="YYYY-MM-DD" placeholderTextColor="#9B879D" style={styles.input}/>
-            <Text style={styles.label}>TIME · 24-HOUR HH:MM</Text>
-            <TextInput value={time} onChangeText={setTime} placeholder="18:00" placeholderTextColor="#9B879D" style={styles.input}/>
+            <Text style={styles.label}>TIME · 12-HOUR</Text>
+            <TextInput value={time} onChangeText={setTime} placeholder="6:00 PM" placeholderTextColor="#9B879D" style={styles.input}/>
             <Text style={styles.label}>REPEAT</Text>
             <View style={styles.row}>{REPEATS.map(v => choice(v,repeat===v,()=>setRepeat(v)))}</View>
             {repeat === "custom" && <><Text style={styles.label}>REPEAT ON</Text><View style={styles.row}>{WEEKDAYS.map(d => choice(d.label,days.includes(d.value),()=>setDays(old=>old.includes(d.value)?old.filter(x=>x!==d.value):[...old,d.value])))}</View></>}
@@ -321,7 +346,7 @@ export default function App() {
             <View style={styles.row}>{SOUNDS.map(v=>choice(v,sound===v,()=>setSound(v)))}</View>
             <Text style={styles.label}>PRIORITY</Text>
             <View style={styles.row}>{["low","medium","high"].map(v=>choice(v,priority===v,()=>setPriority(v)))}</View>
-            <Pressable onPress={saveTask} style={styles.add}><Text style={styles.addText}>{editingId ? "SAVE CHANGES" : "ADD TASK"}</Text></Pressable>
+            <Pressable onPress={saveTask} disabled={saving} style={[styles.add, saving && styles.addDisabled]}><Text style={styles.addText}>{saving ? "SAVING…" : editingId ? "SAVE CHANGES" : "ADD TASK"}</Text></Pressable>
             {editingId ? <Pressable onPress={() => { resetForm(); setShowForm(false); }} style={styles.cancel}><Text style={styles.cancelText}>CANCEL</Text></Pressable> : null}
           </View>}
 
@@ -333,7 +358,7 @@ export default function App() {
               <Pressable onPress={() => toggleTask(item)} style={[styles.check,item.done && styles.checked]}><Text style={styles.checkText}>{item.done ? "✓" : ""}</Text></Pressable>
               <View style={styles.taskBody}>
                 <Text style={[styles.taskName,item.done && styles.strike]}>{item.name}</Text>
-                <Text style={styles.taskMeta}>{item.date}  ·  {item.time}</Text>
+                <Text style={styles.taskMeta}>{item.date}  ·  {to12Hour(item.time)}</Text>
                 <View style={styles.tagRow}><Text style={styles.tag}>{(item.repeat || "once").toUpperCase()}</Text><Text style={styles.priorityTag}>{(item.priority || "medium").toUpperCase()} PRIORITY</Text></View>
               </View>
               <View style={styles.actions}>
@@ -407,6 +432,7 @@ const styles = StyleSheet.create({
   choiceOn:{backgroundColor:"#F3DDF0",borderColor:"#C68BC1"},
   choiceText:{fontSize:9,color:"#765F78",fontWeight:"900"},choiceTextOn:{color:"#60365F"},
   add:{backgroundColor:"#301934",padding:15,borderRadius:12,alignItems:"center",marginTop:9},
+  addDisabled:{opacity:0.55},
   addText:{color:"#FFFFFF",fontWeight:"900",letterSpacing:1.2,fontSize:11},
   cancel:{padding:12,alignItems:"center"},cancelText:{color:"#947D95",fontWeight:"900",fontSize:10},
   filterRow:{flexDirection:"row",gap:8,marginBottom:13},
