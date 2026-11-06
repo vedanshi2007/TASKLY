@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Alert, KeyboardAvoidingView, NativeModules, Platform, Pressable,
+  Alert, Image, KeyboardAvoidingView, NativeModules, Platform, Pressable,
   SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -318,13 +318,13 @@ export default function App() {
   const pendingCount = tasks.filter(t => !t.done).length;
   const doneCount = tasks.filter(t => t.done).length;
 
-  if (!ready) return <SafeAreaView style={styles.loading}><Text style={styles.brand}>TASKLY<Text style={styles.orange}>.</Text></Text><Text style={styles.muted}>Getting your day ready…</Text></SafeAreaView>;
+  if (!ready) return <SafeAreaView style={styles.loading}><Image source={require("./assets/taskly-logo.png")} style={styles.loadingLogo} resizeMode="contain" /><Text style={styles.muted}>Getting your day ready…</Text></SafeAreaView>;
 
   if (!introSeen) {
     return (
       <SafeAreaView style={styles.welcomeScreen}>
         <View style={styles.welcomeTop}>
-          <Text style={styles.welcomeBrand}>TASKLY<Text style={styles.orange}>.</Text></Text>
+          <Image source={require("./assets/taskly-logo.png")} style={styles.introLogo} resizeMode="contain" />
           <View style={styles.pill}><Text style={styles.pillText}>YOUR DAY, IN YOUR HANDS</Text></View>
         </View>
         <View style={styles.heroArt}>
@@ -357,8 +357,8 @@ export default function App() {
       <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.topBar}>
-            <View>
-              <Text style={styles.brand}>TASKLY<Text style={styles.orange}>.</Text></Text>
+            <View style={styles.brandGroup}>
+              <Image source={require("./assets/taskly-logo.png")} style={styles.headerLogo} resizeMode="contain" />
               <Text style={styles.muted}>Plan it. Do it. On time.</Text>
             </View>
             <View style={styles.avatar}><Text style={styles.avatarText}>V</Text></View>
@@ -449,6 +449,10 @@ export default function App() {
 
 const styles = StyleSheet.create({
   loading:{flex:1,backgroundColor:"#FFF8FC",alignItems:"center",justifyContent:"center"},
+  loadingLogo:{width:150,height:150,marginBottom:12},
+  introLogo:{width:112,height:112},
+  brandGroup:{flexDirection:"column",alignItems:"flex-start"},
+  headerLogo:{width:112,height:72,marginLeft:-8},
   welcomeScreen:{flex:1,backgroundColor:"#FFF8FC",paddingHorizontal:26,paddingTop:26,paddingBottom:22,justifyContent:"space-between"},
   welcomeTop:{flexDirection:"row",justifyContent:"space-between",alignItems:"center"},
   welcomeBrand:{fontSize:27,fontWeight:"900",letterSpacing:2.5,color:"#301934"},
