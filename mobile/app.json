@@ -30,7 +30,8 @@
             "./assets/taskly_alarm.wav"
           ]
         }
-      ]
+      ],
+      "./plugins/withTasklyAlarm"
     ],
     "extra": {
       "eas": {
@@ -39,4 +40,3 @@
     }
   }
 }
-
