@@ -18,6 +18,10 @@
       ],
       "notification": {
         "color": "#315CFF"
+      },
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/taskly-logo.png",
+        "backgroundColor": "#FBEAFF"
       }
     },
     "plugins": [
@@ -37,6 +41,7 @@
       "eas": {
         "projectId": "2a3bbaf4-2ae0-408a-95e3-d99b4338d0c3"
       }
-    }
+    },
+    "icon": "./assets/taskly-logo.png"
   }
 }
