@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Alert, KeyboardAvoidingView, Platform, Pressable,
+  Alert, KeyboardAvoidingView, NativeModules, Platform, Pressable,
   SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 
 const KEY = "taskly_mobile_tasks_v2";
+const NativeAlarm = NativeModules.TasklyAlarm;
 const INTRO_KEY = "taskly_intro_seen_v1";
 const SOUNDS = ["silent", "low", "high"];
 const REPEATS = ["once", "daily", "weekly", "custom"];
@@ -89,13 +90,36 @@ function futureDates(task, limit = 14) {
 }
 
 async function cancelTaskNotifications(task) {
+  if (Platform.OS === "android" && NativeAlarm) {
+    try { await NativeAlarm.cancelAlarm(String(task.id)); } catch (error) {
+      console.warn("TASKLY native alarm cancellation failed:", error);
+    }
+  }
   await Promise.all((task.notificationIds || []).map(id =>
     Notifications.cancelScheduledNotificationAsync(id).catch(() => {})
   ));
 }
 
 async function scheduleTask(task) {
-  if (!notificationPermissionGranted || task.done) return [];
+  if (task.done) return [];
+  if (Platform.OS === "android" && NativeAlarm) {
+    const due = dueDate(task);
+    const triggerAt = due.getTime() - (Number(task.reminder) || 0) * 60000;
+    try {
+      await NativeAlarm.scheduleAlarm(JSON.stringify({
+        id: String(task.id), name: task.name, date: task.date,
+        time: to24Hour(task.time), repeat: task.repeat || "once",
+        days: task.days || [], sound: task.sound || "high",
+        triggerAt: Math.max(triggerAt, Date.now() + 1000)
+      }));
+      return [];
+    } catch (error) {
+      console.warn("TASKLY native alarm scheduling failed:", error);
+      Alert.alert("Alarm could not be scheduled", "Please allow exact alarms for TASKLY in Android settings.");
+      return [];
+    }
+  }
+  if (!notificationPermissionGranted) return [];
 
   const reminders = futureDates(task).map(due => {
     const reminderAt = new Date(due.getTime() - (Number(task.reminder) || 0) * 60000);
@@ -162,7 +186,7 @@ export default function App() {
         if (!active) return;
         setTasks(loaded);
         setIntroSeen(intro === "yes");
-        await setupNotifications();
+        if (Platform.OS !== "android" || !NativeAlarm) await setupNotifications();
         const refreshed = [];
         for (const task of loaded) {
           if (!task.done) {
@@ -212,7 +236,7 @@ export default function App() {
     const old = tasks.find(t => t.id === editingId);
     const task = {
       id: editingId || makeId(), name:name.trim(), date, time:time24, repeat, days,
-      reminder:Number(reminder), sound, priority, done:false,
+      reminder:Number(reminder), sound, priority, done:old?.done ?? false,
       created:old?.created || Date.now(), notificationIds:[]
     };
     const next = old ? tasks.map(t => t.id === old.id ? task : t) : [task, ...tasks];
