@@ -359,27 +359,42 @@ export default function App() {
           <View style={styles.topBar}>
             <View>
               <Text style={styles.brand}>TASKLY<Text style={styles.orange}>.</Text></Text>
-              <Text style={styles.muted}>A little more organised, every day.</Text>
+              <Text style={styles.muted}>Plan it. Do it. On time.</Text>
             </View>
-            <View style={styles.avatar}><Text style={styles.avatarText}>T</Text></View>
+            <View style={styles.avatar}><Text style={styles.avatarText}>V</Text></View>
           </View>
 
           <View style={styles.welcomePanel}>
             <View style={styles.panelDecor}/>
-            <Text style={styles.panelEyebrow}>YOUR DAILY OVERVIEW</Text>
-            <Text style={styles.panelTitle}>You've got this.</Text>
-            <Text style={styles.panelSub}>One task at a time. Make today count.</Text>
+            <View style={styles.panelContent}>
+              <View style={styles.panelCopy}>
+                <Text style={styles.panelEyebrow}>GOOD TO SEE YOU! ✨</Text>
+                <Text style={styles.panelTitle}>You've got this.</Text>
+                <Text style={styles.panelSub}>Let's stay productive today ♡</Text>
+              </View>
+              <View style={styles.clockArt}>
+                <View style={styles.clockBellLeft}/>
+                <View style={styles.clockBellRight}/>
+                <View style={styles.clockFace}>
+                  <View style={styles.clockHandHour}/>
+                  <View style={styles.clockHandMinute}/>
+                  <View style={styles.clockCenter}/>
+                </View>
+                <View style={styles.clockLegLeft}/>
+                <View style={styles.clockLegRight}/>
+              </View>
+            </View>
             <View style={styles.statsRow}>
-              <View style={styles.statBox}><Text style={styles.statNumber}>{pendingCount}</Text><Text style={styles.statLabel}>TO DO</Text></View>
+              <View style={styles.statBox}><Text style={styles.statNumber}>{tasks.length}</Text><Text style={styles.statLabel}>TOTAL TASKS</Text></View>
+              <View style={styles.statDivider}/>
+              <View style={styles.statBox}><Text style={styles.statNumber}>{pendingCount}</Text><Text style={styles.statLabel}>PENDING</Text></View>
               <View style={styles.statDivider}/>
               <View style={styles.statBox}><Text style={styles.statNumber}>{doneCount}</Text><Text style={styles.statLabel}>DONE</Text></View>
-              <View style={styles.statDivider}/>
-              <View style={styles.statBox}><Text style={styles.statNumber}>{tasks.length}</Text><Text style={styles.statLabel}>TOTAL</Text></View>
             </View>
           </View>
 
           <View style={styles.sectionHeader}>
-            <View><Text style={styles.sectionTitle}>Your tasks</Text><Text style={styles.sectionHint}>Keep your priorities close.</Text></View>
+            <View><Text style={styles.sectionTitle}>Your Tasks</Text><Text style={styles.sectionHint}>One step at a time.</Text></View>
             <Pressable onPress={() => { resetForm(); setShowForm(!showForm); }} style={styles.newButton}>
               <Text style={styles.newButtonText}>{showForm ? "CLOSE" : "+ NEW TASK"}</Text>
             </Pressable>
@@ -461,23 +476,34 @@ const styles = StyleSheet.create({
   arrow:{fontSize:25,color:"#FF7A45"},
   localNote:{fontSize:8,fontWeight:"800",letterSpacing:1.5,color:"#A48BA5",textAlign:"center",marginTop:15},
   screen:{flex:1,backgroundColor:"#FFF8FC"},container:{flex:1,paddingHorizontal:20,paddingTop:16},
-  topBar:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:20},
-  brand:{fontSize:29,fontWeight:"900",letterSpacing:2.5,color:"#301934"},orange:{color:"#FF5A1F"},
-  muted:{color:"#947D95",fontSize:12,marginTop:5},
-  avatar:{width:42,height:42,borderRadius:15,backgroundColor:"#EBD2E8",alignItems:"center",justifyContent:"center"},
-  avatarText:{fontSize:17,fontWeight:"900",color:"#60365F"},
-  welcomePanel:{backgroundColor:"#301934",borderRadius:24,padding:21,overflow:"hidden",marginBottom:25},
-  panelDecor:{position:"absolute",right:-35,top:-45,width:150,height:150,borderRadius:75,backgroundColor:"#553454"},
-  panelEyebrow:{fontSize:9,fontWeight:"900",letterSpacing:2,color:"#E7B9DF"},
-  panelTitle:{fontSize:27,fontWeight:"900",color:"#FFFFFF",marginTop:10},
-  panelSub:{fontSize:12,color:"#D7C0D8",marginTop:5},
-  statsRow:{flexDirection:"row",alignItems:"center",marginTop:22},
-  statBox:{flex:1},statNumber:{fontSize:25,fontWeight:"900",color:"#FFFFFF"},statLabel:{fontSize:8,fontWeight:"900",letterSpacing:1.5,color:"#D7A8D2",marginTop:4},
-  statDivider:{width:1,height:34,backgroundColor:"#654B66",marginHorizontal:12},
-  sectionHeader:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:15},
-  sectionTitle:{fontSize:22,fontWeight:"900",color:"#301934"},sectionHint:{fontSize:11,color:"#947D95",marginTop:3},
-  newButton:{backgroundColor:"#FF5A1F",paddingVertical:12,paddingHorizontal:14,borderRadius:12},
-  newButtonText:{fontSize:10,fontWeight:"900",letterSpacing:0.8,color:"#FFFFFF"},
+  topBar:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:18,paddingHorizontal:2},
+  brand:{fontSize:30,fontWeight:"900",letterSpacing:2.2,color:"#301934"},orange:{color:"#FF5A1F"},
+  muted:{color:"#947D95",fontSize:12,marginTop:4},
+  avatar:{width:46,height:46,borderRadius:23,backgroundColor:"#EBD2E8",borderWidth:2,borderColor:"#F7E4F4",alignItems:"center",justifyContent:"center"},
+  avatarText:{fontSize:18,fontWeight:"900",color:"#60365F"},
+  welcomePanel:{backgroundColor:"#301934",borderRadius:27,padding:19,overflow:"hidden",marginBottom:23,shadowColor:"#301934",shadowOpacity:0.16,shadowRadius:14,elevation:5},
+  panelDecor:{position:"absolute",right:-34,top:-65,width:190,height:190,borderRadius:95,backgroundColor:"#553454"},
+  panelContent:{minHeight:132,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},
+  panelCopy:{flex:1,paddingRight:5},
+  panelEyebrow:{fontSize:9,fontWeight:"900",letterSpacing:1.2,color:"#E7B9DF"},
+  panelTitle:{fontSize:25,fontWeight:"900",color:"#FFFFFF",marginTop:12,lineHeight:30},
+  panelSub:{fontSize:11,color:"#E5CFE4",marginTop:5},
+  clockArt:{width:126,height:132,alignItems:"center",justifyContent:"center",position:"relative"},
+  clockFace:{width:94,height:94,borderRadius:47,backgroundColor:"#FBEAFF",borderWidth:5,borderColor:"#DDA0DD",alignItems:"center",justifyContent:"center",shadowColor:"#000000",shadowOpacity:0.2,shadowRadius:8,elevation:5},
+  clockBellLeft:{position:"absolute",top:8,left:18,width:28,height:16,borderRadius:14,backgroundColor:"#DDA0DD",transform:[{rotate:"-28deg"}]},
+  clockBellRight:{position:"absolute",top:8,right:17,width:28,height:16,borderRadius:14,backgroundColor:"#DDA0DD",transform:[{rotate:"28deg"}]},
+  clockHandHour:{position:"absolute",width:7,height:28,borderRadius:5,backgroundColor:"#60365F",top:22,left:40,transform:[{rotate:"-42deg"}]},
+  clockHandMinute:{position:"absolute",width:5,height:34,borderRadius:5,backgroundColor:"#8B5B89",top:15,left:49,transform:[{rotate:"48deg"}]},
+  clockCenter:{width:10,height:10,borderRadius:5,backgroundColor:"#60365F"},
+  clockLegLeft:{position:"absolute",bottom:8,left:27,width:7,height:18,borderRadius:5,backgroundColor:"#DDA0DD",transform:[{rotate:"28deg"}]},
+  clockLegRight:{position:"absolute",bottom:8,right:27,width:7,height:18,borderRadius:5,backgroundColor:"#DDA0DD",transform:[{rotate:"-28deg"}]},
+  statsRow:{flexDirection:"row",alignItems:"center",marginTop:13,paddingVertical:11,paddingHorizontal:9,borderRadius:17,backgroundColor:"#FFFFFF12",borderWidth:1,borderColor:"#FFFFFF18"},
+  statBox:{flex:1,alignItems:"center"},statNumber:{fontSize:23,fontWeight:"900",color:"#FFFFFF"},statLabel:{fontSize:8,fontWeight:"900",letterSpacing:0.8,color:"#E5C2E1",marginTop:3},
+  statDivider:{width:1,height:34,backgroundColor:"#765A78",marginHorizontal:8},
+  sectionHeader:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:14,marginTop:2},
+  sectionTitle:{fontSize:23,fontWeight:"900",color:"#301934"},sectionHint:{fontSize:11,color:"#947D95",marginTop:3},
+  newButton:{backgroundColor:"#FF5A1F",paddingVertical:12,paddingHorizontal:15,borderRadius:14,shadowColor:"#FF5A1F",shadowOpacity:0.18,shadowRadius:7,elevation:2},
+  newButtonText:{fontSize:10,fontWeight:"900",letterSpacing:0.6,color:"#FFFFFF"},
   form:{backgroundColor:"#FFFFFF",borderWidth:1,borderColor:"#F0E2EF",borderRadius:20,padding:16,marginBottom:17},
   formTitle:{fontSize:11,fontWeight:"900",letterSpacing:1.5,color:"#A66BA4",marginBottom:12},
   input:{backgroundColor:"#FFF8FC",borderColor:"#EAD9E9",borderWidth:1,borderRadius:12,padding:13,color:"#301934",marginBottom:9},
@@ -490,13 +516,13 @@ const styles = StyleSheet.create({
   addDisabled:{opacity:0.55},
   addText:{color:"#FFFFFF",fontWeight:"900",letterSpacing:1.2,fontSize:11},
   cancel:{padding:12,alignItems:"center"},cancelText:{color:"#947D95",fontWeight:"900",fontSize:10},
-  filterRow:{flexDirection:"row",gap:8,marginBottom:13},
+  filterRow:{flexDirection:"row",gap:9,marginBottom:15},
   empty:{backgroundColor:"#FFFFFF",borderRadius:18,borderWidth:1,borderColor:"#F0E2EF",padding:25,alignItems:"center",marginTop:5},
   emptyIcon:{fontSize:27,color:"#FF5A1F"},emptyTitle:{fontSize:17,fontWeight:"900",color:"#301934",marginTop:8},
-  card:{flexDirection:"row",alignItems:"center",backgroundColor:"#FFFFFF",borderWidth:1,borderColor:"#F0E2EF",borderRadius:16,padding:13,marginBottom:10},
-  check:{width:25,height:25,borderRadius:9,borderWidth:1.5,borderColor:"#C68BC1",alignItems:"center",justifyContent:"center",marginRight:10},
+  card:{flexDirection:"row",alignItems:"center",backgroundColor:"#FFFFFF",borderWidth:1,borderColor:"#F0E2EF",borderLeftWidth:4,borderLeftColor:"#C68BC1",borderRadius:17,padding:14,marginBottom:10,shadowColor:"#60365F",shadowOpacity:0.05,shadowRadius:7,elevation:2},
+  check:{width:27,height:27,borderRadius:14,borderWidth:1.7,borderColor:"#8B5B89",alignItems:"center",justifyContent:"center",marginRight:11},
   checked:{backgroundColor:"#DDA0DD",borderColor:"#DDA0DD"},checkText:{color:"#301934",fontWeight:"900"},
-  taskBody:{flex:1},taskName:{color:"#301934",fontWeight:"800",fontSize:13},strike:{textDecorationLine:"line-through",color:"#A994A9"},
+  taskBody:{flex:1},taskName:{color:"#301934",fontWeight:"800",fontSize:14},strike:{textDecorationLine:"line-through",color:"#A994A9"},
   taskMeta:{color:"#947D95",fontSize:10,marginTop:5},
   tagRow:{flexDirection:"row",gap:6,marginTop:7,flexWrap:"wrap"},
   tag:{color:"#754B73",backgroundColor:"#F5E7F3",fontSize:8,fontWeight:"900",paddingHorizontal:7,paddingVertical:4,borderRadius:6},
