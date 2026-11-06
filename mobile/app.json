@@ -27,10 +27,16 @@
           "defaultChannel": "taskly-high-v4",
           "color": "#315CFF",
           "sounds": [
-            "./assets/taskly-alarm.wav"
+            "./assets/taskly_alarm.wav"
           ]
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "2a3bbaf4-2ae0-408a-95e3-d99b4338d0c3"
+      }
+    }
   }
 }
+
