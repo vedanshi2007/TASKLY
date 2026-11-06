@@ -103,6 +103,9 @@ class TasklyAlarmReceiver : BroadcastReceiver() {
           val task = JSONObject(raw)
           val next = nextOccurrence(task)
           if (next > System.currentTimeMillis() && task.optString("repeat", "once") != "once") {
+            task.put("triggerAt", next)
+            context.getSharedPreferences("taskly_alarms", Context.MODE_PRIVATE)
+              .edit().putString(id, task.toString()).apply()
             TasklyAlarmModule.schedule(context, id, next, false)
           }
         } catch (_: Exception) {}
