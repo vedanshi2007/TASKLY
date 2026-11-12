@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.expo/
+.env
+.DS_Store
+android/build/
+android/.gradle/
+android/app/build/
+android/.cxx/
+android/local.properties
+supabase/.temp/
+supabase-config.js
