@@ -252,6 +252,11 @@ class TasklyAlarmActivity : Activity() {
     }
     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     val id = intent.getStringExtra("taskId") ?: ""
+    val savedTask = getSharedPreferences("taskly_alarms", MODE_PRIVATE).getString(id, null)
+    val taskName = try {
+      org.json.JSONObject(savedTask ?: "{}").optString("name", "It's time.")
+        .takeIf { it.isNotBlank() } ?: "It's time."
+    } catch (_: Exception) { "It's time." }
     val root = LinearLayout(this).apply {
       orientation = LinearLayout.VERTICAL
       gravity = Gravity.CENTER
@@ -265,10 +270,11 @@ class TasklyAlarmActivity : Activity() {
       gravity = Gravity.CENTER
     })
     root.addView(TextView(this).apply {
-      text = "It's time."
+      text = taskName
       textSize = 24f
       setTextColor(android.graphics.Color.rgb(255, 122, 69))
       gravity = Gravity.CENTER
+      maxLines = 3
       setPadding(0, 28, 0, 36)
     })
     root.addView(Button(this).apply {
