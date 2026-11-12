@@ -165,6 +165,10 @@ export default function App() {
   const [name, setName] = useState("");
   const [date, setDate] = useState(today());
   const [time, setTime] = useState("6:00 PM");
+  const [ampm, setAmpm] = useState("PM");
+  const [ampmOpen, setAmpmOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
   const [repeat, setRepeat] = useState("once");
@@ -219,7 +223,7 @@ export default function App() {
   }
 
   function resetForm() {
-    setName(""); setDate(today()); setTime("6:00 PM"); setRepeat("once");
+    setName(""); setDate(today()); setTime("6:00 PM"); setAmpm("PM"); setAmpmOpen(false); setCalendarOpen(false); setCalendarMonth(new Date()); setRepeat("once");
     setDays([]); setReminder("15"); setSound("high"); setPriority("medium");
     setEditingId(null);
   }
@@ -272,7 +276,7 @@ export default function App() {
   }
 
   function editTask(task) {
-    setEditingId(task.id); setName(task.name); setDate(task.date); setTime(to12Hour(task.time));
+    setEditingId(task.id); setName(task.name); setDate(task.date); setTime(to12Hour(task.time)); setAmpm(to12Hour(task.time).slice(-2)); setAmpmOpen(false); setCalendarMonth(new Date(task.date + "T12:00:00")); setCalendarOpen(false);
     setRepeat(task.repeat || "once"); setDays(task.days || []);
     setReminder(String(task.reminder ?? 15)); setSound(task.sound || "low");
     setPriority(task.priority || "medium");
@@ -317,6 +321,14 @@ export default function App() {
   const visible = tasks.filter(t => filter === "all" ? true : filter === "pending" ? !t.done : t.done);
   const pendingCount = tasks.filter(t => !t.done).length;
   const doneCount = tasks.filter(t => t.done).length;
+  const monthStart = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+  const monthName = monthStart.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const calendarCells = [
+    ...Array(monthStart.getDay()).fill(null),
+    ...Array.from({length:new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()+1, 0).getDate()}, (_, i) => i + 1)
+  ];
+  while (calendarCells.length % 7 !== 0) calendarCells.push(null);
+  const selectedDay = date.slice(8, 10);
 
   if (!ready) return <SafeAreaView style={styles.loading}><Text style={styles.loadingBrand}>TASKLY</Text><Text style={styles.muted}>Getting your day ready…</Text></SafeAreaView>;
 
@@ -403,10 +415,43 @@ export default function App() {
           {showForm && <View style={styles.form}>
             <Text style={styles.formTitle}>{editingId ? "EDIT YOUR TASK" : "CREATE A TASK"}</Text>
             <TextInput value={name} onChangeText={setName} placeholder="What do you need to do?" placeholderTextColor="#9B879D" style={styles.input}/>
-            <Text style={styles.label}>DUE DATE · YYYY-MM-DD</Text>
-            <TextInput value={date} onChangeText={setDate} placeholder="YYYY-MM-DD" placeholderTextColor="#9B879D" style={styles.input}/>
-            <Text style={styles.label}>TIME · 12-HOUR</Text>
-            <TextInput value={time} onChangeText={setTime} placeholder="6:00 PM" placeholderTextColor="#9B879D" style={styles.input}/>
+            <Text style={styles.label}>DUE DATE</Text>
+            <Pressable onPress={() => { setCalendarOpen(!calendarOpen); setAmpmOpen(false); }} style={styles.dateButton}>
+              <Text style={styles.dateButtonIcon}>▦</Text>
+              <Text style={styles.dateButtonText}>{new Date(date + "T12:00:00").toLocaleDateString("en-US", {day:"numeric", month:"long", year:"numeric"})}</Text>
+              <Text style={styles.dateButtonHint}>{calendarOpen ? "CLOSE" : "CHANGE"}</Text>
+            </Pressable>
+            {calendarOpen && <View style={styles.calendar}>
+              <View style={styles.calendarHeader}>
+                <Pressable onPress={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()-1, 1))} style={styles.monthArrow}><Text style={styles.monthArrowText}>‹</Text></Pressable>
+                <Text style={styles.monthTitle}>{monthName}</Text>
+                <Pressable onPress={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth()+1, 1))} style={styles.monthArrow}><Text style={styles.monthArrowText}>›</Text></Pressable>
+              </View>
+              <View style={styles.calendarGrid}>
+                {["S","M","T","W","T","F","S"].map((d,i)=><Text key={d+i} style={styles.weekDay}>{d}</Text>)}
+                {calendarCells.map((day,index) => {
+                  if (!day) return <View key={"blank"+index} style={styles.dayCell}/>;
+                  const value = calendarMonth.getFullYear()+"-"+pad(calendarMonth.getMonth()+1)+"-"+pad(day);
+                  const chosen = value === date;
+                  const past = new Date(value+"T23:59:59") < new Date(new Date().toDateString());
+                  return <Pressable key={value} disabled={past} onPress={() => { setDate(value); setCalendarOpen(false); }} style={[styles.dayCell, chosen && styles.daySelected, past && styles.dayDisabled]}>
+                    <Text style={[styles.dayText, chosen && styles.dayTextSelected, past && styles.dayTextDisabled]}>{day}</Text>
+                  </Pressable>;
+                })}
+              </View>
+            </View>}
+            <Text style={styles.label}>TIME</Text>
+            <View style={styles.timeRow}>
+              <TextInput value={time.split(" ")[0]} onChangeText={value => setTime(value + " " + ampm)} placeholder="6:00" placeholderTextColor="#9B879D" keyboardType="numbers-and-punctuation" style={[styles.input,styles.timeInput]}/>
+              <View style={styles.ampmWrap}>
+                <Pressable onPress={() => { setAmpmOpen(!ampmOpen); setCalendarOpen(false); }} style={styles.ampmButton}>
+                  <Text style={styles.ampmButtonText}>{ampm}</Text><Text style={styles.ampmChevron}>⌄</Text>
+                </Pressable>
+                {ampmOpen && <View style={styles.ampmMenu}>
+                  {["AM","PM"].map(v=><Pressable key={v} onPress={() => { setAmpm(v); setTime(time.split(" ")[0]+" "+v); setAmpmOpen(false); }} style={[styles.ampmOption,ampm===v && styles.ampmOptionOn]}><Text style={[styles.ampmOptionText,ampm===v && styles.ampmOptionTextOn]}>{v}</Text></Pressable>)}
+                </View>}
+              </View>
+            </View>
             <Text style={styles.label}>REPEAT</Text>
             <View style={styles.row}>{REPEATS.map(v => choice(v,repeat===v,()=>setRepeat(v)))}</View>
             {repeat === "custom" && <><Text style={styles.label}>REPEAT ON</Text><View style={styles.row}>{WEEKDAYS.map(d => choice(d.label,days.includes(d.value),()=>setDays(old=>old.includes(d.value)?old.filter(x=>x!==d.value):[...old,d.value])))}</View></>}
@@ -509,6 +554,34 @@ const styles = StyleSheet.create({
   form:{backgroundColor:"#FFFFFF",borderWidth:1,borderColor:"#F0E2EF",borderRadius:20,padding:16,marginBottom:17},
   formTitle:{fontSize:11,fontWeight:"900",letterSpacing:1.5,color:"#A66BA4",marginBottom:12},
   input:{backgroundColor:"#FFF8FC",borderColor:"#EAD9E9",borderWidth:1,borderRadius:12,padding:13,color:"#301934",marginBottom:9},
+  dateButton:{height:48,backgroundColor:"#FFF8FC",borderColor:"#EAD9E9",borderWidth:1,borderRadius:12,paddingHorizontal:13,flexDirection:"row",alignItems:"center",marginBottom:9},
+  dateButtonIcon:{fontSize:19,color:"#A66BA4",marginRight:10},
+  dateButtonText:{flex:1,color:"#301934",fontSize:13,fontWeight:"700"},
+  dateButtonHint:{fontSize:9,fontWeight:"900",letterSpacing:0.8,color:"#A66BA4"},
+  calendar:{backgroundColor:"#FFF8FC",borderWidth:1,borderColor:"#EAD9E9",borderRadius:14,padding:10,marginBottom:12},
+  calendarHeader:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:10},
+  monthArrow:{width:34,height:34,borderRadius:10,backgroundColor:"#F3DDF0",alignItems:"center",justifyContent:"center"},
+  monthArrowText:{fontSize:25,color:"#60365F",lineHeight:28},
+  monthTitle:{fontSize:13,fontWeight:"900",color:"#301934"},
+  calendarGrid:{flexDirection:"row",flexWrap:"wrap"},
+  weekDay:{width:"14.2857%",textAlign:"center",fontSize:10,fontWeight:"900",color:"#A66BA4",paddingVertical:8},
+  dayCell:{width:"14.2857%",height:38,alignItems:"center",justifyContent:"center",borderRadius:10},
+  daySelected:{backgroundColor:"#301934"},
+  dayDisabled:{opacity:0.28},
+  dayText:{fontSize:12,color:"#60365F",fontWeight:"600"},
+  dayTextSelected:{color:"#FFFFFF",fontWeight:"900"},
+  dayTextDisabled:{color:"#B8AAB8"},
+  timeRow:{flexDirection:"row",gap:9,alignItems:"flex-start",marginBottom:4},
+  timeInput:{flex:1,marginBottom:9},
+  ampmWrap:{width:105,zIndex:5},
+  ampmButton:{height:48,backgroundColor:"#F3DDF0",borderWidth:1,borderColor:"#DDB5D8",borderRadius:12,paddingHorizontal:13,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},
+  ampmButtonText:{fontSize:13,fontWeight:"900",color:"#60365F"},
+  ampmChevron:{fontSize:18,color:"#60365F"},
+  ampmMenu:{position:"absolute",top:52,left:0,right:0,backgroundColor:"#FFFFFF",borderWidth:1,borderColor:"#EAD9E9",borderRadius:12,padding:5,elevation:8,shadowColor:"#301934",shadowOpacity:0.12,shadowRadius:8},
+  ampmOption:{paddingVertical:11,paddingHorizontal:12,borderRadius:8},
+  ampmOptionOn:{backgroundColor:"#F3DDF0"},
+  ampmOptionText:{fontSize:12,fontWeight:"800",color:"#765F78"},
+  ampmOptionTextOn:{color:"#60365F"},
   label:{color:"#765F78",fontSize:9,fontWeight:"900",letterSpacing:1,marginTop:8,marginBottom:8},
   row:{flexDirection:"row",gap:7,marginBottom:9,flexWrap:"wrap"},
   choice:{paddingVertical:9,paddingHorizontal:11,borderRadius:10,borderWidth:1,borderColor:"#EAD9E9",backgroundColor:"#FFFFFF",justifyContent:"center"},
