@@ -1,9 +1,3 @@
-
-// Clear Windows-generated autolinking cache on Linux EAS builds
-def autolinkingCacheDir = new File(rootDir, "build/generated/autolinking")
-if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
-    autolinkingCacheDir.deleteDir()
-}
 pluginManagement {
   def reactNativeGradlePlugin = new File(
     providers.exec {
@@ -12,7 +6,7 @@ pluginManagement {
     }.standardOutput.asText.get().trim()
   ).getParentFile().absolutePath
   includeBuild(reactNativeGradlePlugin)
-  
+
   def expoPluginsPath = new File(
     providers.exec {
       workingDir(rootDir)
@@ -26,6 +20,11 @@ pluginManagement {
 plugins {
   id("com.facebook.react.settings")
   id("expo-autolinking-settings")
+}
+
+def autolinkingCacheDir = new File(rootDir, "build/generated/autolinking")
+if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
+    autolinkingCacheDir.deleteDir()
 }
 
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
