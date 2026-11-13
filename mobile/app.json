@@ -22,7 +22,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/taskly-logo.png",
         "backgroundColor": "#FBEAFF"
-      }
+      },
+      "icon": "./assets/taskly-logo.png"
     },
     "plugins": [
       [
