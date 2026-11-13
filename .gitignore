@@ -4,3 +4,6 @@ dist/
 supabase/.temp/
 supabase-config.js
 .DS_Store
+
+# Ignore generated Android build cache (prevents Windows paths reaching EAS Linux)
+mobile/android/build/
